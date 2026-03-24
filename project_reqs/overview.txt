@@ -1,0 +1,44 @@
+Here are the core requirements and deliverables for your data science project, drawing on the sources and our previous conversation:
+
+**1. Group Structure & Workload**
+*   The project is **group-based**, typically consisting of 3-person groups (though sometimes pairs). 
+*   You are expected to put in a full-time effort, roughly ~300 hours across the ~10 weeks.
+*   Each group member is expected to make an equal and appropriate contribution, and you will be assessed on **active participation** in class and demonstrator meetings.
+
+**2. Research Questions**
+*   You must formulate specific, **testable and falsifiable hypotheses**.
+*   The questions must be non-trivial, interesting, and go beyond simplistic metrics (e.g., avoid basic "how many" or "who" questions). 
+*   Ideally, your group should identify **about 4 main questions** to guide your analysis.
+
+**3. Dataset Requirements**
+*   **Size:** You must work with a **sizeable quantity of data**, typically running into tens of thousands of records or more.
+*   **Originality:** You are required to generate or assemble a significant dataset. You can do this by combining multiple existing datasets in a novel way or creating a new dataset from scratch. 
+*   **Ethics & Rights:** 
+
+**4. Project Code & Reproducibility**
+*   You must deliver **suitably structured and commented project code** that forms a reproducible data processing pipeline (covering data preparation, cleaning, and analysis).
+*   The sources strongly encourage adopting software development best practices, such as maintaining a **sensible project structure** (separating raw data, clean data, and notebooks by task) and writing unit tests for your data properties.
+
+**5. Presentations & Updates**
+*   **Project Proposal:** A ~10-minute presentation (plus Q&A) detailing your research questions, datasets, approach, and ethical considerations.
+*   **Progress Updates:** You must deliver short progress update presentations twice a week during in-person stand-ups on **Mondays and Fridays**.
+*   **Final Presentation:** A ~15-minute presentation (plus Q&A) summarizing your key findings, conclusions, and project limitations.
+
+**6. Final Report**
+The final report is a **25-40 page document written using Overleaf/LaTeX** that serves to motivate your work, justify your research questions, and comprehensively present your results. 
+
+You should structure your report following the provided template, which includes the following key sections:
+
+*   **Abstract:** A brief 200-500 word strategic overview of the project's aims, without getting bogged down in details.
+*   **Introduction:** Sets the stage by explaining what the project is about, why it is interesting, and briefly summarizing the main research questions, data sources, and overall report structure.
+*   **Project Objectives:** Details your motivations for choosing the project and clearly lists your specific, testable research questions as hypotheses.
+*   **Related Work:** Describes how previous approaches have tackled similar problems, establishes the state of the art, and includes properly formatted citations.
+*   **Data Considerations:** Explains why you chose your specific datasets, how the data was collected, and the steps you took to prepare and clean the data for analysis.
+*   **Results:** This is the core analytical section. You must dedicate a specific subsection to each Research Question (RQ). For every RQ, you need to explain the **data and methods** used, present the **results** (typically visualized with graphs), and include a **discussion** explaining your conclusions and their implications.
+*   **Conclusions:** Sums up the project, outlines potential future work, and thoughtfully addresses any **ethical concerns** regarding how your data or users were treated.
+*   **Acknowledgements & Bibliography:** Give credit to anyone who helped you and properly cite all references using BibTeX.
+
+**Crucial Appendices for Group Work and Reproducibility:**
+To ensure fair grading and clear project structure, your appendices must include:
+*   **Individual Contributions:** A breakdown of exactly what each group member was responsible for (e.g., who handled which specific research question).
+*   **Datasets & Notebooks Tracker:** A list of the main dataset and notebook filenames, a brief one-sentence description of what each file does, and the initials of the specific student responsible for that file.

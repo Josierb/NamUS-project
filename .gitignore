@@ -1,0 +1,13 @@
+# Data output - contains sensitive personal data, do not commit
+namus-scraper/output/
+
+# Python
+__pycache__/
+*.pyc
+.venv/
+
+# macOS
+.DS_Store
+
+# VSCode
+.vscode/

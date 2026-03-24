@@ -1,0 +1,35 @@
+The sample project, "Does Hollywood Ruin Good Books?", investigates whether movie adaptations are rated higher or lower than their source material. It is an exemplary model of an A-grade project because it perfectly executes the module's core requirements—from formulating testable questions to handling messy data with statistical rigor. 
+
+Here is an overview of why it is highly successful and how you should use it as a template for your own project:
+
+**1. Specific, Testable Research Questions**
+Instead of stopping at a vague premise, the project breaks its overarching theme into a structured series of testable hypotheses:
+*   **RQ1:** Do movie adaptations receive lower ratings than the books they are based on?
+*   **RQ2:** Do specific types of books, genres, or authors produce better adaptations?
+*   **RQ3:** Are adaptations more popular or financially successful (at the box office) than original movies?
+
+**2. Sophisticated Data Integration (Avoiding Personal Data)**
+Unlike the missing persons concept we discussed earlier, this project uses entirely public, non-personal data, eliminating GDPR and ethical concerns. It demonstrates excellent technical breadth by combining data from four distinct sources in different formats:
+*   **Bulk Downloads:** Official raw .tsv datasets from IMDB.
+*   **APIs:** JSON movie metadata from the OMDB API and XML book metadata from the Goodreads API.
+*   **Web Scraping:** Financial data scraped from BoxOfficeMojo.
+*   **Fuzzy Matching:** Real-world data is messy, so the authors didn't rely on exact matches to link movies to books. They used the `fuzzywuzzy` library for approximate string matching of titles and author names.
+
+**3. Test-Driven Data Cleaning**
+The project doesn't just drop missing rows; it employs a highly structured, logical cleaning process. 
+*   It uses the `great_expectations` library to perform "test-driven data cleaning," formally testing assumptions like whether IDs are unique or if publication years fall within valid ranges. 
+*   When facing duplicate movie-to-book matches, it applies a consistent, repeatable rule: keeping the match with the highest number of Goodreads votes, assuming the most-read book is the most plausible source. 
+
+**4. Statistical Rigor and Critical Thinking**
+This is where the project truly earns an A. The authors realized that directly comparing IMDB ratings (out of 10) to Goodreads ratings (out of 5) was statistically flawed. 
+*   Even after scaling both to a 0–1 range, they plotted the data and noticed the *distributions* were entirely different (book raters are generally more generous than movie raters). 
+*   To fix this, they calculated **Z-scores** for every rating, measuring how far above or below average a book or movie was *compared to its own population* (all books or all movies). 
+*   This critical thinking reversed their initial findings: while raw ratings suggested books always beat movies, Z-scores revealed that Hollywood adaptations actually tend to outperform their source material. 
+
+**5. Reproducibility and Sensible Structure**
+The project follows software development best practices, which the module strongly emphasizes:
+*   The original data collection process is fully scripted so anyone can reproduce it.
+*   The project uses a strict, numbered file-naming convention that separates raw data, prepared data, and analysis (e.g., `1000_...` for raw downloads, `2000_...` for data cleaning, `3000_...` for analysis). This makes the pipeline incredibly easy to follow.
+
+**How to apply this to your project:**
+As you pivot away from the missing persons idea, look for a topic where you can similarly combine 3 or 4 distinct public datasets. Focus on identifying a problem where you might need to use fuzzy matching to link records, and plan to look deeply into the statistical distributions of your variables rather than taking simple averages at face value.
