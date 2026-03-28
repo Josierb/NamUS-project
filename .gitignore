@@ -1,5 +1,5 @@
 # Data output - contains sensitive personal data, do not commit
-namus-scraper/output/
+data-processing/output/
 
 # Python
 __pycache__/
