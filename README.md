@@ -18,17 +18,22 @@ An analysis of missing persons cases in the United States, combining data from t
 
 ```
 NamUS_project/
+├── requirements.txt              # Python dependencies
 ├── data-processing/
 │   ├── namus-scraper/
 │   │   ├── scrape-data.py        # Fetches all missing persons cases from NamUs API
 │   │   └── clean-data.py         # Flattens raw JSON into structured CSV
-│   ├── enrich-data.py            # Joins external socioeconomic datasets
-│   └── output/                   # Generated data files (not committed)
-│       └── MissingPersons/
-│           ├── MissingPersons.json            # Raw scraped data
-│           ├── MissingPersons_clean.csv       # Cleaned case-level data (65 cols)
-│           ├── MissingPersons_enriched.csv    # Enriched with socioeconomic data (84 cols)
-│           └── county_socioeconomic.csv       # Standalone county-level dataset
+│   ├── enrich-data.py            # Joins external socioeconomic datasets (single year)
+│   ├── historical-data.py        # Fetches multi-year snapshots and fits county-level trends
+│   └── output/
+│       ├── MissingPersons/       # Case-level data — NOT committed (personal information)
+│       │   ├── MissingPersons.json            # Raw scraped data
+│       │   ├── MissingPersons_clean.csv       # Cleaned case-level data (65 cols)
+│       │   └── MissingPersons_enriched.csv    # Enriched with socioeconomic data (84 cols)
+│       └── county-data/          # County-level data — committed (no personal info)
+│           ├── county_socioeconomic.csv       # 2022 snapshot: ACS, SVI, Metro/Micro
+│           ├── county_historical_long.csv     # Multi-year panel: 2012–2022 (35k rows)
+│           └── county_trends.csv             # Per-county trend slopes, R², 2026 projections
 └── project_reqs/                 # Module guidelines and templates
 ```
 
@@ -57,7 +62,7 @@ NamUS_project/
 ```bash
 python3 -m venv ~/namus-venv
 source ~/namus-venv/bin/activate
-pip install requests grequests pandas geopandas openpyxl
+pip install -r requirements.txt
 ```
 
 > Note: If your project path contains a colon (e.g. `UCD 25:26`), create the venv outside the project directory as shown above.
@@ -85,7 +90,15 @@ Flattens the nested JSON into a flat CSV with 65 columns. Derives fields includi
 python3 enrich-data.py
 ```
 
-Fetches county and state-level data from 6 external sources and joins to the cleaned NamUs data by county FIPS code. Adds 19 new columns. Output: `output/MissingPersons/MissingPersons_enriched.csv`
+Fetches county and state-level data from 6 external sources and joins to the cleaned NamUs data by county FIPS code. Adds 19 new columns. Output: `output/MissingPersons/MissingPersons_enriched.csv` and `output/county-data/county_socioeconomic.csv`
+
+### 5. Build historical trends
+
+```bash
+python3 historical-data.py
+```
+
+Fetches multi-year snapshots of county socioeconomic indicators (Census ACS 2012–2022, CDC SVI 2014–2022, FBI UCR 1960–2019) and fits per-county linear regressions to produce trend slopes, R², standard deviation of residuals, and 2026 projections. Outputs: `output/county-data/county_historical_long.csv` and `output/county-data/county_trends.csv`
 
 ---
 

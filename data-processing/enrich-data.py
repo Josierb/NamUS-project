@@ -22,7 +22,7 @@ from shapely.geometry import Point
 
 CLEAN_INPUT     = "./output/MissingPersons/MissingPersons_clean.csv"
 ENRICHED_OUTPUT = "./output/MissingPersons/MissingPersons_enriched.csv"
-COUNTY_OUTPUT   = "./output/MissingPersons/county_socioeconomic.csv"
+COUNTY_OUTPUT   = "./output/county-data/county_socioeconomic.csv"
 
 # ---------------------------------------------------------------------------
 # Census ACS variable reference:
