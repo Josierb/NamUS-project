@@ -1,5 +1,8 @@
-# Data output - contains sensitive personal data, do not commit
-data-processing/output/
+# Personal case-level data - contains real missing persons info, do not commit
+data-processing/output/MissingPersons/*
+!data-processing/output/MissingPersons/.gitkeep
+
+# County-level data (no personal info) is committed under data-processing/output/county-data/
 
 # Python
 __pycache__/
