@@ -51,7 +51,9 @@ NamUS_project/
 | FBI UCR (2019) | CORGIS / FBI | State | Violent and property crime rates per 100k |
 | Census TIGER AIANNH (2022) | Census Bureau | Spatial | Tribal land boundaries — spatial join |
 
-> **Note:** The `output/` directory is excluded from version control. Raw data contains personal information about real missing persons cases and must be handled responsibly. Run the pipeline below to reproduce the dataset locally.
+> **Note:** `output/MissingPersons/` is excluded from version control — it contains personal information about real missing persons cases and must not be committed. `output/county-data/` (no personal data) is committed and tracked.
+>
+> When you clone the repo, `output/MissingPersons/` will appear empty (only a `.gitkeep` placeholder is tracked). Run the pipeline below to regenerate your local copy of the case data. Git will ignore those files automatically — you don't need to do anything special to keep them local.
 
 ---
 
