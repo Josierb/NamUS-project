@@ -1,18 +1,3 @@
-"""
-historical-data.py
-Fetches multi-year snapshots of county-level socioeconomic indicators and
-calculates per-county trends (slope, std dev of residuals, R², 2026 extrapolation).
-
-Sources:
-  - Census ACS 5-year estimates: 2009–2022 (api.census.gov)
-  - CDC Social Vulnerability Index: 2010, 2014, 2016, 2018, 2020, 2022 (svi.cdc.gov)
-  - FBI UCR crime rates: all available years 1960–2019 (CORGIS CSV mirror)
-
-Outputs:
-  - output/MissingPersons/county_historical_long.csv  (county × year × metrics)
-  - output/MissingPersons/county_trends.csv           (slope, std, R², 2026 projection per county)
-"""
-
 import requests
 import pandas as pd
 import numpy as np
@@ -23,10 +8,6 @@ LONG_OUTPUT   = "./output/county-data/county_historical_long.csv"
 TRENDS_OUTPUT = "./output/county-data/county_trends.csv"
 
 EXTRAPOLATE_YEAR = 2026
-
-# ---------------------------------------------------------------------------
-# Census ACS variables (consistent across years)
-# ---------------------------------------------------------------------------
 ACS_VARS = ",".join([
     "NAME",
     "B01003_001E",   # total population
@@ -39,20 +20,11 @@ ACS_VARS = ",".join([
     "B15003_001E",   # total pop 25+ (education denominator)
 ])
 
-# ACS 5-year estimates available from 2009 onward
 ACS_YEARS = list(range(2009, 2023))
-
-# CDC SVI available years and confirmed URL pattern
 SVI_YEARS = [2010, 2014, 2016, 2018, 2020, 2022]
 SVI_URL_PATTERN = "https://svi.cdc.gov/Documents/Data/{year}/csv/States_Counties/SVI_{year}_US_county.csv"
-
-# CORGIS FBI dataset covers 1960–2019
 FBI_URL = "https://corgis-edu.github.io/corgis/datasets/csv/state_crime/state_crime.csv"
 
-
-# ---------------------------------------------------------------------------
-# Helpers
-# ---------------------------------------------------------------------------
 
 def _to_fips(state_col, county_col):
     return state_col.astype(str).str.zfill(2) + county_col.astype(str).str.zfill(3)
@@ -76,10 +48,6 @@ def linreg_stats(years, values):
     projection = slope * EXTRAPOLATE_YEAR + intercept
     return slope, intercept, r ** 2, std_resid, projection
 
-
-# ---------------------------------------------------------------------------
-# Fetch ACS for a single year
-# ---------------------------------------------------------------------------
 
 def fetch_acs_year(year):
     url = (
@@ -122,10 +90,6 @@ def fetch_acs_year(year):
                "poverty_rate", "unemployment_rate", "pct_bachelors_plus"]]
 
 
-# ---------------------------------------------------------------------------
-# Fetch SVI for a single year
-# ---------------------------------------------------------------------------
-
 def fetch_svi_year(year):
     url = SVI_URL_PATTERN.format(year=year)
     try:
@@ -136,7 +100,6 @@ def fetch_svi_year(year):
         print(f"    WARNING: SVI {year} failed ({e})")
         return None
 
-    # FIPS column name varies across years
     fips_col = next((c for c in df.columns if c.upper() in ("FIPS", "STCOFIPS")), None)
     svi_col  = next((c for c in df.columns if c.upper() == "RPL_THEMES"), None)
 
@@ -151,10 +114,6 @@ def fetch_svi_year(year):
     df["year"] = year
     return df[["fips", "year", "svi_score"]].dropna(subset=["fips"])
 
-
-# ---------------------------------------------------------------------------
-# Fetch FBI UCR (all years)
-# ---------------------------------------------------------------------------
 
 def fetch_fbi_all_years():
     print("  Fetching FBI UCR crime rates (all years)...")
@@ -176,14 +135,7 @@ def fetch_fbi_all_years():
         return None
 
 
-# ---------------------------------------------------------------------------
-# Main
-# ---------------------------------------------------------------------------
-
 def main():
-    # -----------------------------------------------------------------------
-    # 1. Fetch ACS across years
-    # -----------------------------------------------------------------------
     print(f"Fetching Census ACS 5-year estimates for {ACS_YEARS[0]}–{ACS_YEARS[-1]}...")
     acs_frames = []
     for year in ACS_YEARS:
@@ -197,10 +149,6 @@ def main():
 
     acs_long = pd.concat(acs_frames, ignore_index=True) if acs_frames else pd.DataFrame()
     print(f"  Total ACS rows: {len(acs_long)}\n")
-
-    # -----------------------------------------------------------------------
-    # 2. Fetch SVI across years
-    # -----------------------------------------------------------------------
     print(f"Fetching CDC SVI for years: {SVI_YEARS}...")
     svi_frames = []
     for year in SVI_YEARS:
@@ -215,18 +163,10 @@ def main():
     svi_long = pd.concat(svi_frames, ignore_index=True) if svi_frames else pd.DataFrame()
     print(f"  Total SVI rows: {len(svi_long)}\n")
 
-    # -----------------------------------------------------------------------
-    # 3. Fetch FBI (state-level, all years)
-    # -----------------------------------------------------------------------
     fbi_all = fetch_fbi_all_years()
     print()
 
-    # -----------------------------------------------------------------------
-    # 4. Build county long-format table
-    # -----------------------------------------------------------------------
     print("Building county historical long table...")
-
-    # ACS is the backbone; left-join SVI on fips+year
     if not acs_long.empty and not svi_long.empty:
         county_long = acs_long.merge(svi_long, on=["fips", "year"], how="left")
     elif not acs_long.empty:
@@ -234,13 +174,11 @@ def main():
     else:
         county_long = svi_long.copy()
 
-    # Parse county/state names from the ACS NAME field ("County Name, State Name")
     if "NAME" in county_long.columns:
         split = county_long["NAME"].str.rsplit(", ", n=1, expand=True)
         county_long["county_name"] = split[0]
         county_long["state_name"]  = split[1] if split.shape[1] > 1 else pd.NA
 
-    # Attach FBI state-level data via state name
     if fbi_all is not None and "state_name" in county_long.columns:
         county_long["state_lower"] = county_long["state_name"].str.lower().str.strip()
         county_long = county_long.merge(
@@ -248,7 +186,6 @@ def main():
         )
         county_long = county_long.drop(columns=["state_lower", "state"], errors="ignore")
 
-    # Clean up column order
     id_cols = ["fips", "year", "county_name", "state_name"]
     id_cols = [c for c in id_cols if c in county_long.columns]
     metric_cols = [c for c in county_long.columns if c not in id_cols + ["NAME"]]
@@ -258,11 +195,7 @@ def main():
     county_long.to_csv(LONG_OUTPUT, index=False)
     print(f"  Saved to {LONG_OUTPUT}\n")
 
-    # -----------------------------------------------------------------------
-    # 5. Fit per-county trends
-    # -----------------------------------------------------------------------
     print("Fitting per-county linear trends...")
-
     trend_metrics = [
         "county_population",
         "median_household_income",
@@ -275,7 +208,6 @@ def main():
     ]
     trend_metrics = [m for m in trend_metrics if m in county_long.columns]
 
-    # Group by FIPS
     fips_groups = county_long.groupby("fips")
 
     trend_rows = []
@@ -284,7 +216,6 @@ def main():
         years_arr = group["year"].to_numpy(dtype=float)
 
         row = {"fips": fips}
-        # Carry forward county/state name (most recent non-null)
         if "county_name" in group.columns:
             row["county_name"] = group["county_name"].dropna().iloc[-1] if group["county_name"].notna().any() else np.nan
         if "state_name" in group.columns:
@@ -295,10 +226,8 @@ def main():
                 continue
             vals = group[metric].to_numpy(dtype=float)
             slope, intercept, r2, std_resid, proj = linreg_stats(years_arr, vals)
-            # Snapshot at most recent year
             latest_val = group[metric].dropna().iloc[-1] if group[metric].notna().any() else np.nan
             latest_year = group.loc[group[metric].notna(), "year"].iloc[-1] if group[metric].notna().any() else np.nan
-
             row[f"{metric}_latest"]       = latest_val
             row[f"{metric}_latest_year"]  = latest_year
             row[f"{metric}_slope"]        = slope
@@ -312,10 +241,6 @@ def main():
     print(f"  {len(trends)} counties with trend data")
     trends.to_csv(TRENDS_OUTPUT, index=False)
     print(f"  Saved to {TRENDS_OUTPUT}")
-
-    # -----------------------------------------------------------------------
-    # 6. Summary
-    # -----------------------------------------------------------------------
     print(f"\n{'='*60}")
     print(f"TREND SUMMARY  (n={len(trends)} counties)")
     print(f"{'='*60}")

@@ -1,15 +1,3 @@
-"""
-enrich-data.py
-Fetches county/state-level socioeconomic data from:
-  - US Census Bureau ACS 5-year estimates (2022)
-  - CDC Social Vulnerability Index (2022)
-  - USDA Rural-Urban Continuum Codes (2023)
-  - CDC PLACES Mental Health indicators (2023)
-  - FBI UCR Violent Crime rates by state (2019, most recent bulk release)
-  - Census TIGER Tribal Land boundaries — spatial join (BIA/AIANNH)
-Joins to cleaned NamUS missing persons data by state + county.
-Outputs a new enriched CSV, leaving the original untouched.
-"""
 
 import requests
 import pandas as pd
@@ -125,10 +113,8 @@ def fetch_rural_urban():
         r.raise_for_status()
         df = pd.read_excel(io.BytesIO(r.content), header=2, dtype=str)
 
-        # Build FIPS from state + county codes
         df["fips"] = df["FIPS State Code"].str.zfill(2) + df["FIPS County Code"].str.zfill(3)
 
-        # Classify: Metropolitan / Micropolitan / Rural
         df = df.rename(columns={
             "Metropolitan/Micropolitan Statistical Area": "metro_micro_type",
             "CBSA Title": "cbsa_title",
@@ -185,12 +171,8 @@ def fetch_fbi_crime():
         r = requests.get(url, timeout=60)
         r.raise_for_status()
         df = pd.read_csv(io.StringIO(r.text))
-
-        # Filter to 2019 (most recent year in this dataset)
         df = df[df["Year"] == 2019].copy()
         df = df.rename(columns={"State": "state"})
-
-        # Violent crime rate = violent crimes / population * 100,000
         df["violent_crime_rate_per_100k"]  = df["Data.Rates.Violent.All"]
         df["property_crime_rate_per_100k"] = df["Data.Rates.Property.All"]
         df["state"] = df["state"].str.lower().str.strip()
@@ -213,7 +195,6 @@ def fetch_tribal_lands(namus_df):
         r = requests.get(url, timeout=120)
         r.raise_for_status()
 
-        # Save zip to temp dir and read with geopandas
         with tempfile.TemporaryDirectory() as tmpdir:
             zip_path = os.path.join(tmpdir, "tribal.zip")
             with open(zip_path, "wb") as f:
@@ -226,7 +207,6 @@ def fetch_tribal_lands(namus_df):
         tribal = tribal.to_crs("EPSG:4326")
         print(f"  {len(tribal)} tribal land areas loaded")
 
-        # Build GeoDataFrame from NamUS lat/lon
         valid = namus_df[namus_df["lat"].notna() & namus_df["lon"].notna()].copy()
         gdf = gpd.GeoDataFrame(
             valid,
@@ -234,12 +214,9 @@ def fetch_tribal_lands(namus_df):
             crs="EPSG:4326",
         )
 
-        # Spatial join — find which cases fall inside a tribal boundary
         joined = gpd.sjoin(gdf, tribal[["geometry", "NAMELSAD"]], how="left", predicate="within")
         joined["within_tribal_boundary"] = joined["NAMELSAD"].notna()
         joined = joined.rename(columns={"NAMELSAD": "tribal_land_name"})
-
-        # Handle duplicates (case in multiple areas — keep first match)
         joined = joined[~joined.index.duplicated(keep="first")]
 
         result = joined[["within_tribal_boundary", "tribal_land_name"]].reindex(namus_df.index)
@@ -290,7 +267,7 @@ def main():
 
     print()
 
-    # --- Build join keys ---
+    #join keys 
     acs["join_key"] = acs.apply(
         lambda r: build_join_key(r["acs_county_raw"], r["acs_state_raw"]), axis=1
     )
@@ -300,7 +277,6 @@ def main():
         lambda r: build_join_key(r.get("county"), r.get("state")), axis=1
     )
 
-    # --- Join county-level data (ACS → then FIPS-keyed) ---
     print("Joining data to NamUS cases...")
     enriched = namus.merge(
         acs.drop(columns=["acs_county_raw", "acs_state_raw"]),
@@ -313,19 +289,16 @@ def main():
 
     enriched = enriched.drop(columns=["join_key"])
 
-    # --- Join state-level FBI data ---
     if fbi is not None:
         enriched["state_lower"] = enriched["state"].str.lower().str.strip()
         enriched = enriched.merge(fbi, left_on="state_lower", right_on="state", how="left", suffixes=("", "_fbi"))
         enriched = enriched.drop(columns=["state_lower", "state_fbi"], errors="ignore")
         print("  Joined FBI Crime")
 
-    # --- Attach tribal spatial join ---
     if tribal is not None:
         enriched = enriched.join(tribal)
         print("  Joined Tribal Boundaries")
 
-    # --- Coverage report ---
     original_cols = set(pd.read_csv(CLEAN_INPUT, nrows=0).columns)
     new_cols = [c for c in enriched.columns if c not in original_cols]
     print(f"\nNew columns added: {len(new_cols)}")
@@ -336,12 +309,10 @@ def main():
         pct = nn / len(enriched) * 100
         print(f"  {col:<35} {nn:>10} {pct:>9.1f}%")
 
-    # --- Save enriched case-level CSV ---
     print(f"\nWriting {ENRICHED_OUTPUT}...")
     enriched.to_csv(ENRICHED_OUTPUT, index=False)
     print(f"  {len(enriched)} rows, {len(enriched.columns)} columns")
 
-    # --- Save standalone county-level CSV ---
     county_df = acs.drop(columns=["join_key"], errors="ignore").rename(
         columns={"acs_county_raw": "county", "acs_state_raw": "state"}
     )

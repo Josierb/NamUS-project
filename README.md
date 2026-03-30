@@ -1,16 +1,16 @@
 # NamUS Missing Persons — Data Science Project
 **COMP30780 | University College Dublin | 2025–26**
 
-An analysis of missing persons cases in the United States, combining data from the National Missing and Unidentified Persons System (NamUs) with county-level socioeconomic, geographic, and health indicators to investigate patterns in reporting, demographics, and case resolution.
+An analysis of missing persons cases in the United States, combining data from the National Missing and Unidentified Persons System (NamUS) with county-level crime, geographic, and demographic data to investigate which areas and groups are most at risk — and whether those risk factors can be predicted.
 
 ---
 
 ## Research Questions
 
-1. Do counties with higher poverty rates have disproportionately higher missing persons rates per capita?
-2. Does socioeconomic vulnerability predict how long it takes for a case to be reported?
-3. Is there a relationship between a county's racial demographic composition and the ethnicity of its missing persons cases — are certain groups underrepresented?
-4. Do cases in more socioeconomically deprived areas have lower resolution rates?
+1. **Risk prediction:** When combining crime rates, location type, and demographics, can you predict which areas and groups are most at risk for missing persons cases?
+2. **Crime:** Does the type of crime most prevalent in an area affect how many people go missing there?
+3. **Geospatial:** Do missing persons cases cluster around specific geographic environments — forests, rural areas, or urban centres?
+4. **Demographics:** Are certain racial or demographic groups reported missing at a disproportionately higher rate than their share of the population?
 
 ---
 
